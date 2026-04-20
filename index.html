@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mid-Market SC Flashcards — Nextiva NCC</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  :root {
+    --navy: #0A2540;
+    --navy-deep: #061A2F;
+    --blue: #1E4B8F;
+    --blue-light: #3B6FC4;
+    --orange: #FE6F1A;
+    --orange-soft: #FF8A3D;
+    --ink: #0F1B2D;
+    --muted: #5B6B80;
+    --bg: #F4F6FA;
+    --card: #FFFFFF;
+    --border: #E3E8F0;
+    --shadow: 0 6px 24px rgba(10, 37, 64, 0.10);
+    --shadow-lg: 0 18px 40px rgba(10, 37, 64, 0.18);
+  }
+  html, body { height: 100%; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  .app {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 16px 16px 120px;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+  header { padding: 8px 4px 16px; }
+  h1 {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--navy);
+    letter-spacing: -0.01em;
+  }
+  .subtitle {
+    font-size: 13px;
+    color: var(--muted);
+    margin-top: 2px;
+  }
+  .controls {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 12px 0 16px;
+  }
+  .category-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    scrollbar-width: none;
+  }
+  .category-row::-webkit-scrollbar { display: none; }
+  .chip {
+    flex-shrink: 0;
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    color: var(--ink);
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .chip.active {
+    background: var(--navy);
+    color: #fff;
+    border-color: var(--navy);
+  }
+  .chip .count {
+    opacity: 0.65;
+    margin-left: 4px;
+    font-weight: 500;
+  }
+  .progress-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    font-weight: 600;
+  }
+  .progress-track {
+    flex: 1;
+    height: 6px;
+    background: var(--border);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--blue), var(--orange));
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+  .stage {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 0;
+    perspective: 1600px;
+    min-height: 420px;
+  }
+  .card {
+    width: 100%;
+    max-width: 640px;
+    aspect-ratio: 3 / 4;
+    max-height: 560px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+    cursor: pointer;
+  }
+  @media (max-height: 750px) {
+    .card { aspect-ratio: 4 / 5; }
+  }
+  .card.flipped { transform: rotateY(180deg); }
+  .face {
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 28px 24px;
+    display: flex;
+    flex-direction: column;
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
+  }
+  .face.front {
+    background: linear-gradient(155deg, var(--navy) 0%, var(--navy-deep) 100%);
+    color: #fff;
+  }
+  .face.back {
+    background: var(--card);
+    color: var(--ink);
+    transform: rotateY(180deg);
+    overflow-y: auto;
+  }
+  .face-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    flex-shrink: 0;
+  }
+  .face.back .face-header {
+    border-bottom-color: var(--border);
+  }
+  .category-tag {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--orange-soft);
+  }
+  .face.back .category-tag {
+    color: var(--orange);
+  }
+  .segment-tag {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.85);
+    margin-left: 6px;
+    letter-spacing: 0.05em;
+  }
+  .face.back .segment-tag {
+    background: var(--border);
+    color: var(--muted);
+  }
+  .card-number {
+    font-size: 12px;
+    color: rgba(255,255,255,0.55);
+    font-weight: 600;
+  }
+  .face.back .card-number { color: var(--muted); }
+  .prompt {
+    font-size: 22px;
+    font-weight: 700;
+    line-height: 1.3;
+    letter-spacing: -0.01em;
+    flex: 1;
+    display: flex;
+    align-items: center;
+  }
+  .prompt-inner { width: 100%; }
+  .flip-hint {
+    text-align: center;
+    font-size: 12px;
+    color: rgba(255,255,255,0.5);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    flex-shrink: 0;
+    margin-top: 12px;
+  }
+  .answer {
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--ink);
+    flex: 1;
+  }
+  .answer p { margin-bottom: 10px; }
+  .answer p:last-child { margin-bottom: 0; }
+  .answer strong { color: var(--navy); font-weight: 700; }
+  .answer ul, .answer ol {
+    margin: 8px 0 10px 18px;
+    padding-left: 4px;
+  }
+  .answer li { margin-bottom: 6px; }
+  .answer .callout {
+    background: #FFF4EC;
+    border-left: 3px solid var(--orange);
+    padding: 10px 12px;
+    margin: 10px 0;
+    border-radius: 6px;
+    font-size: 14px;
+  }
+  .answer .callout strong { color: var(--orange); }
+  .nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(to top, var(--bg) 70%, rgba(244,246,250,0));
+    padding: 14px 16px 18px;
+    z-index: 20;
+  }
+  .nav-inner {
+    max-width: 720px;
+    margin: 0 auto;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .btn {
+    flex: 1;
+    padding: 14px;
+    border-radius: 14px;
+    border: none;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.15s;
+    font-family: inherit;
+    letter-spacing: 0.01em;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-prev, .btn-next {
+    background: var(--card);
+    color: var(--navy);
+    border: 1.5px solid var(--border);
+  }
+  .btn-flip {
+    background: var(--orange);
+    color: #fff;
+    flex: 1.4;
+    box-shadow: 0 6px 16px rgba(254, 111, 26, 0.35);
+  }
+  .btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .shuffle-btn {
+    padding: 8px 14px;
+    border-radius: 999px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    color: var(--navy);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .shuffle-btn:active { transform: scale(0.96); }
+  .top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+  }
+  @media (max-width: 480px) {
+    .prompt { font-size: 18px; }
+    .answer { font-size: 14px; }
+    h1 { font-size: 19px; }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="top-row">
+      <h1>Mid-Market SC Flashcards</h1>
+      <button class="shuffle-btn" id="shuffleBtn">🔀 Shuffle</button>
+    </div>
+    <div class="subtitle">Nextiva NCC · LMM + UMM deal execution</div>
+  </header>
+
+  <div class="controls">
+    <div class="category-row" id="categoryRow"></div>
+    <div class="progress-bar">
+      <span id="progressText">1 / 1</span>
+      <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    </div>
+  </div>
+
+  <div class="stage">
+    <div class="card" id="card">
+      <div class="face front">
+        <div class="face-header">
+          <div>
+            <span class="category-tag" id="frontCat">Category</span>
+            <span class="segment-tag" id="frontSeg" style="display:none">LMM</span>
+          </div>
+          <span class="card-number" id="frontNum">1</span>
+        </div>
+        <div class="prompt"><div class="prompt-inner" id="promptText">Loading…</div></div>
+        <div class="flip-hint">Tap to reveal</div>
+      </div>
+      <div class="face back">
+        <div class="face-header">
+          <div>
+            <span class="category-tag" id="backCat">Category</span>
+            <span class="segment-tag" id="backSeg" style="display:none">LMM</span>
+          </div>
+          <span class="card-number" id="backNum">1</span>
+        </div>
+        <div class="answer" id="answerText">Loading…</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav">
+    <div class="nav-inner">
+      <button class="btn btn-prev" id="prevBtn">← Prev</button>
+      <button class="btn btn-flip" id="flipBtn">Flip</button>
+      <button class="btn btn-next" id="nextBtn">Next →</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// Segment tags: "BOTH" (shown on all cards), "LMM" (lower mid-market), "UMM" (upper mid-market)
+const CARDS = [
+  // ===== DISCOVERY (top priority — the #1 execution gap) =====
+  {
+    category: "Discovery",
+    segment: "BOTH",
+    prompt: "Why is discovery the biggest execution gap on mid-market deals?",
+    answer: `
+      <p><strong>Because mid-market SCs get pulled into demos before they understand the deal.</strong></p>
+      <p>The pattern:</p>
+      <ul>
+        <li>AE books a demo fast because velocity matters in mid-market</li>
+        <li>SC joins without talking to the buyer first</li>
+        <li>Demo becomes a generic product tour</li>
+        <li>Buyer feels unheard; deal goes quiet or loses on fit</li>
+      </ul>
+      <div class="callout"><strong>The fix:</strong> 20-minute discovery on every deal before demo. Not 2 hours like Strategic — just 20 focused minutes. That's the bar.</div>
+    `
+  },
+  {
+    category: "Discovery",
+    segment: "BOTH",
+    prompt: "The 20-minute mid-market discovery: what questions do you ask?",
+    answer: `
+      <p><strong>Keep it tight — mid-market buyers don't have 45 minutes for discovery.</strong></p>
+      <ol>
+        <li><strong>"What's the platform you're on today, and what made you start looking?"</strong> — Gets you the incumbent + the trigger event</li>
+        <li><strong>"What's the one thing that's most broken right now?"</strong> — The pain that justifies the project</li>
+        <li><strong>"Who else is involved in this decision, and what do they care about?"</strong> — Stakeholder map in one question</li>
+        <li><strong>"What's your timeline, and what's driving it?"</strong> — Separates real deals from window shopping</li>
+        <li><strong>"If we did a demo next week, what would be the most useful thing to show you?"</strong> — Tells you exactly how to tune the demo</li>
+      </ol>
+      <div class="callout">Five questions. Twenty minutes. Better than 80% of mid-market demos get before they're built.</div>
+    `
+  },
+  {
+    category: "Discovery",
+    segment: "BOTH",
+    prompt: "What do you do when the AE won't let you do discovery first?",
+    answer: `
+      <p><strong>Three options, in order:</strong></p>
+      <ol>
+        <li><strong>The ask:</strong> "Let me get 20 minutes with their tech lead before the demo — it'll double the close rate."</li>
+        <li><strong>The side-channel:</strong> Email the prospect's main contact directly: "Quick 15 min before our meeting to make sure the demo is specifically useful to you?" Most buyers say yes.</li>
+        <li><strong>The in-meeting pivot:</strong> Start the demo call with "Before I dive in, help me tune this — tell me about your current setup and the one thing you most want to fix." Turn the first 10 minutes into discovery.</li>
+      </ol>
+      <div class="callout"><strong>Never skip discovery.</strong> A generic demo wastes everyone's time and lowers your close rate. Push.</div>
+    `
+  },
+  {
+    category: "Discovery",
+    segment: "BOTH",
+    prompt: "What 3 things should you know before ANY mid-market demo?",
+    answer: `
+      <ol>
+        <li><strong>Their current platform.</strong> RingCentral? Mitel? 8x8? Nextiva Pro (upgrade)? On-prem PBX? This changes the entire pitch.</li>
+        <li><strong>Their trigger event.</strong> Contract renewal? Outage? Acquisition? New VP? "Just looking" is not a trigger.</li>
+        <li><strong>Their seat count range and channel mix.</strong> 50 agents voice-only is a different demo than 300 agents with chat and SMS.</li>
+      </ol>
+      <div class="callout">If you don't have these 3, you're not ready to demo — you're ready to do discovery. Do that first.</div>
+    `
+  },
+  {
+    category: "Discovery",
+    segment: "UMM",
+    prompt: "UMM-specific: what extra discovery do you need above 500 seats?",
+    answer: `
+      <p>Upper mid-market buyers ask more questions because the deal is bigger and the buying committee is wider. Add these to your discovery:</p>
+      <ul>
+        <li><strong>Integration landscape:</strong> CRM, ticketing, WFM, QM, WEM — what do they have, what do they need wired up?</li>
+        <li><strong>Reporting and BI:</strong> Where does contact center data need to land? BigQuery, Snowflake, Tableau, Looker?</li>
+        <li><strong>Multi-site / remote workforce:</strong> How many sites? Agents at home? Global presence?</li>
+        <li><strong>Compliance posture:</strong> HIPAA, PCI-DSS, SOC 2, GDPR — which apply?</li>
+        <li><strong>Who owns the contract?</strong> IT? Operations? Finance? CX? This changes the entire evaluation path.</li>
+      </ul>
+      <div class="callout">Above 500 seats, you're selling to a buying committee of 5–8 people. Discovery has to cover all their angles.</div>
+    `
+  },
+  {
+    category: "Discovery",
+    segment: "LMM",
+    prompt: "LMM-specific: how do you move fast without skipping discovery?",
+    answer: `
+      <p>Lower mid-market moves quickly — buyers want a demo within days, not weeks. Adapt:</p>
+      <ul>
+        <li><strong>15-minute pre-call the day before the demo.</strong> Not "discovery" — call it "prep so the demo is useful to you."</li>
+        <li><strong>Chat-based discovery.</strong> Slack, email, or SMS a few questions and get answers async before the call.</li>
+        <li><strong>First 10 minutes of the demo is discovery in disguise.</strong> "Before I show you anything, walk me through what your day looks like now."</li>
+        <li><strong>Pre-built vertical decks.</strong> If you already have a healthcare demo tenant and the buyer is healthcare, you're 70% prepped — discovery just tunes the rest.</li>
+      </ul>
+      <div class="callout">LMM velocity isn't "skip discovery." It's "compress discovery without losing it."</div>
+    `
+  },
+
+  // ===== COMPETITIVE =====
+  {
+    category: "Competitive",
+    segment: "BOTH",
+    prompt: "How do you position against RingCentral in mid-market?",
+    answer: `
+      <p><strong>RingCentral is the most common incumbent. Play their strengths honestly, then press the wedge.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "RingCentral has a solid UCaaS product and a big install base. For UC-only, they're capable."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>Their CCaaS is bolted on (RingCX).</strong> It's newer, less mature, and doesn't share a native data layer with their UC. Our CCaaS is native.</li>
+        <li><strong>They've been through pricing changes and reorg pressure.</strong> Ask the buyer: "How predictable has your pricing been?"</li>
+        <li><strong>They're a voice-first platform with digital layered on. We're built omnichannel from day one.</strong></li>
+        <li><strong>Their AI story is fragmented across products. Our NCC stack is integrated.</strong></li>
+      </ul>
+      <div class="callout">Don't trash RC. Show the buyer what to stress-test in their evaluation.</div>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "BOTH",
+    prompt: "How do you position against 8x8 in mid-market?",
+    answer: `
+      <p><strong>8x8 is Nextiva's closest structural competitor — UCaaS + CCaaS on one platform.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "8x8 has been unified UC + CC longer than most. They're a credible option."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>Execution and modernization.</strong> 8x8's core platform has legacy architecture. Our Thrio-based NCC is more modern, more AI-forward.</li>
+        <li><strong>Financial health.</strong> 8x8 has had slower growth and restructuring. Ask the buyer: "Who do you want as a multi-year partner?"</li>
+        <li><strong>AI depth.</strong> We have Dialogflow CX + Thrio + BigQuery. 8x8's AI story is less integrated and less proven at scale.</li>
+        <li><strong>Deployment speed and support.</strong> Nextiva's support ratings and NPS consistently exceed 8x8's.</li>
+      </ul>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "BOTH",
+    prompt: "How do you position against Dialpad in mid-market?",
+    answer: `
+      <p><strong>Dialpad leads with AI branding. That's the angle to handle head-on.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "Dialpad has done good marketing around AI in UC. Real-time transcription is solid."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>Dialpad is UC-first with CC layered on.</strong> If the buyer has >100 contact center agents, they outgrow Dialpad's CC fast.</li>
+        <li><strong>"AI" in Dialpad often means transcription + summaries. Ours means full agentic AI with Dialogflow CX, workflow automation, and custom agent building.</strong></li>
+        <li><strong>Dialpad's routing and WEM are thin.</strong> Any serious contact center ops leader will find gaps in skills routing, QM, and forecasting.</li>
+        <li><strong>Our reporting layer with BigQuery gives real analytics. Dialpad's dashboards are more surface-level.</strong></li>
+      </ul>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "BOTH",
+    prompt: "How do you position against Five9 in mid-market?",
+    answer: `
+      <p><strong>Five9 is a pure-play CCaaS — strongest direct CC competitor for us.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "Five9 is a mature CC platform. For CC-only, they're capable."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>UC + CC unification.</strong> Five9 has no UCaaS. If the buyer has a separate phone system, they're managing two vendors, two bills, two support orgs. We consolidate.</li>
+        <li><strong>Deployment speed.</strong> Five9 engagements often run 4–6 months. We deploy mid-market in 60–90 days.</li>
+        <li><strong>Total cost.</strong> Five9 per-seat plus services plus integration tax usually runs 20–30% higher TCO than Nextiva unified.</li>
+        <li><strong>Innovation velocity.</strong> Nextiva ships new AI features faster than Five9's release train.</li>
+      </ul>
+      <div class="callout">Against Five9, the single most effective question is: "Do you currently have a separate phone system vendor? What's that costing you to maintain?"</div>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "BOTH",
+    prompt: "How do you position against Talkdesk in mid-market?",
+    answer: `
+      <p><strong>Talkdesk leans heavily on AI narrative and has strong product marketing.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "Talkdesk has invested heavily in AI and has a clean UI. Ascend AI is a solid story."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>Financial stability questions.</strong> Talkdesk has had layoffs and private investor pressure. Ask: "Who do you want as a long-term partner?"</li>
+        <li><strong>CC-only, no UC.</strong> Same wedge as Five9 — consolidation opportunity.</li>
+        <li><strong>Vertical depth.</strong> Talkdesk markets verticals heavily but real customer references are thinner than they appear. Test it.</li>
+        <li><strong>TCO with all the AI add-ons stacked up is closer to enterprise pricing.</strong></li>
+      </ul>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "UMM",
+    prompt: "How do you position against Genesys Cloud CX (upper mid-market)?",
+    answer: `
+      <p><strong>Genesys is moving downmarket from enterprise. At UMM, they're competing hard.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "Genesys is a Gartner Leader and has deep functionality. For complex operations, they're a serious option."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>Complexity tax.</strong> Genesys Cloud has enterprise DNA. Mid-market customers routinely struggle with configuration complexity and implementation timelines.</li>
+        <li><strong>Cost.</strong> Genesys pricing is 30–50% higher than Nextiva for equivalent capability in mid-market.</li>
+        <li><strong>UC + CC unification.</strong> Genesys has no UCaaS.</li>
+        <li><strong>Implementation services-heavy model.</strong> Genesys deals require long PS engagements. Nextiva is more self-serve and faster to value.</li>
+      </ul>
+      <div class="callout">The framing: "Genesys is built for 5,000-seat global banks. You're 400 seats. Do you need the complexity, or do you need outcomes?"</div>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "BOTH",
+    prompt: "How do you handle GoTo Contact Center / Zoom Contact Center?",
+    answer: `
+      <p><strong>These are SMB-leaning platforms pushing into mid-market. Easy wedge in most cases.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "GoTo and Zoom Contact Center are newer entries. For very small teams, they can work."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>Shallow CCaaS depth.</strong> Limited skills routing, thin WEM, basic reporting. The gaps show up fast above 50 agents.</li>
+        <li><strong>Zoom Contact Center is video-call-centric.</strong> Voice and digital channels are less mature.</li>
+        <li><strong>GoTo's contact center is cobbled together from the Jive acquisition. Legacy architecture.</strong></li>
+        <li><strong>Neither has an agentic AI story close to ours.</strong></li>
+      </ul>
+      <div class="callout">When a buyer is evaluating GoTo or Zoom CC seriously, they usually haven't done contact center before. Lead with discovery — not features.</div>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "UMM",
+    prompt: "How do you position against Sprinklr in UMM?",
+    answer: `
+      <p><strong>Sprinklr is the newest serious CCaaS player — strong digital and social angle, weak on voice maturity.</strong></p>
+      <p><strong>Fair acknowledgment:</strong> "Sprinklr is unique — they came into CCaaS from unified CXM and have deep social/digital roots. For digital-first operations, interesting choice."</p>
+      <p><strong>The wedge:</strong></p>
+      <ul>
+        <li><strong>Voice is newer for Sprinklr.</strong> Their voice/telephony only went GA in late 2025. We've been doing voice at scale for years.</li>
+        <li><strong>Implementation complexity.</strong> Gartner Peer Insights reviews consistently call Sprinklr complex to implement and "a learning curve for new users."</li>
+        <li><strong>No UCaaS.</strong> Same wedge as Five9/Talkdesk.</li>
+        <li><strong>Pricing.</strong> Sprinklr markets to enterprises. Their pricing and PS model can feel heavy for mid-market.</li>
+        <li><strong>They're trying to do everything — social listening + marketing + service + voice.</strong> If the buyer only needs contact center, that's a lot of platform they're paying for.</li>
+      </ul>
+      <div class="callout">When Sprinklr is in a deal, it usually means the buyer has a big digital/social footprint. Lead with our omnichannel depth, not against Sprinklr's strengths.</div>
+    `
+  },
+  {
+    category: "Competitive",
+    segment: "BOTH",
+    prompt: "What's the universal competitive question you ask in EVERY mid-market deal?",
+    answer: `
+      <p><strong>"Do you have a separate phone system vendor from your contact center today?"</strong></p>
+      <p><strong>Why this question is a weapon:</strong></p>
+      <ul>
+        <li>If yes (which is 70%+ of mid-market): you've just surfaced the strongest Nextiva advantage — one platform, one vendor, one bill</li>
+        <li>You get the two vendor names, which tells you the competitive landscape</li>
+        <li>You get budget signal — they're paying two contracts</li>
+        <li>You get consolidation pain — they're managing two support teams, two admin consoles, two release schedules</li>
+      </ul>
+      <div class="callout">Every competitor except 8x8 has to concede this point. Use it.</div>
+    `
+  },
+
+  // ===== DEMO CRAFT =====
+  {
+    category: "Demo Craft",
+    segment: "BOTH",
+    prompt: "What's the mid-market demo structure that works?",
+    answer: `
+      <p><strong>Tell → Show → Tell, but compressed. 45 minutes max.</strong></p>
+      <ol>
+        <li><strong>Tell (5 min):</strong> Recap their pain from discovery. "You said your biggest issue is X. Here's how we solve it."</li>
+        <li><strong>Show (30 min):</strong> 3–4 specific workflows tied to their pain. Not a feature tour. Not every module. Their workflow.</li>
+        <li><strong>Tell (5 min):</strong> Summarize what they saw, tie it back to their pain, confirm it resonated, set next steps.</li>
+        <li><strong>Q&amp;A (5 min):</strong> Leave room.</li>
+      </ol>
+      <div class="callout">If you're running past 45 minutes on a mid-market demo, you're losing them. Cut scope, not depth.</div>
+    `
+  },
+  {
+    category: "Demo Craft",
+    segment: "BOTH",
+    prompt: "How do you get speed WITHOUT sacrificing quality in demo prep?",
+    answer: `
+      <p><strong>Build once, reuse forever. Here's the mid-market SC prep kit:</strong></p>
+      <ul>
+        <li><strong>5 vertical demo tenants</strong> pre-built: Healthcare, Financial Services, Retail, BPO, General/Ops</li>
+        <li><strong>Reusable workflow library:</strong> 10 pre-built Thrio workflows that cover 80% of mid-market demos (IVR, callback, survey, CRM screen pop, skills routing, overflow, after-hours, warm transfer, secure payment, agent assist)</li>
+        <li><strong>Reusable click paths:</strong> Written Tell → Show → Tell scripts per common use case</li>
+        <li><strong>Reusable slide snippets:</strong> 10 "closer" slides you can drop into any deck (outcome story, competitive compare, implementation timeline, pricing frame, TCO, etc.)</li>
+      </ul>
+      <div class="callout"><strong>The test:</strong> You should be able to prep a mid-market demo in under an hour for any common vertical. If it takes longer, the prep kit isn't tight enough.</div>
+    `
+  },
+  {
+    category: "Demo Craft",
+    segment: "BOTH",
+    prompt: "What 3 things should you always show in a mid-market demo?",
+    answer: `
+      <ol>
+        <li><strong>The agent desktop handling a real inbound contact.</strong> Screen pop from their CRM (or a mock of it), full context, one-click actions. This is the "a day in the life" moment.</li>
+        <li><strong>An AI interaction.</strong> Dialogflow CX self-service, agent assist suggestions, or an automated post-call survey. Buyers expect to see AI. Show AI doing real work.</li>
+        <li><strong>A supervisor/admin view.</strong> Real-time dashboard, queue status, agent state. This is the "peace of mind" moment for ops leaders — they need to know they can manage the team.</li>
+      </ol>
+      <div class="callout">Anything beyond these three is gravy. These three are the minimum viable mid-market demo.</div>
+    `
+  },
+  {
+    category: "Demo Craft",
+    segment: "BOTH",
+    prompt: "What should you NEVER do in a mid-market demo?",
+    answer: `
+      <ul>
+        <li><strong>Show every feature.</strong> Mid-market buyers aren't evaluating checkboxes — they're evaluating fit.</li>
+        <li><strong>Read slides aloud.</strong> If a slide has more than 10 words, you're not demoing, you're reading.</li>
+        <li><strong>Start with the admin console.</strong> Start with the agent or the customer. The human experience comes first.</li>
+        <li><strong>Demo from a broken or generic tenant.</strong> Even if you're in a rush, use the pre-built vertical tenant — it's always better than a generic one.</li>
+        <li><strong>Run past time without asking.</strong> If you're at 40 min in a 45-min demo, stop and ask: "Do you have hard stop, or do we have a few extra minutes?"</li>
+      </ul>
+    `
+  },
+  {
+    category: "Demo Craft",
+    segment: "BOTH",
+    prompt: "What makes a mid-market demo credible vs. generic?",
+    answer: `
+      <p><strong>Five specific moves, each taking 5–15 minutes of prep:</strong></p>
+      <ol>
+        <li><strong>Their company name in the tenant.</strong> "ABC Clinic Support" not "Demo Queue 1"</li>
+        <li><strong>Their industry language.</strong> Healthcare says "patient access"; retail says "customer service"; mortgage says "loan officer." Use their words.</li>
+        <li><strong>Their incumbent as the before-state.</strong> "You said you're on RingCentral — here's how this workflow looks different in Nextiva."</li>
+        <li><strong>Their actual KPI as the outcome.</strong> "You said AHT is your biggest issue. Watch how this cuts AHT."</li>
+        <li><strong>A reference customer in their space.</strong> "A customer of ours in your vertical saw X outcome. Here's how."</li>
+      </ol>
+      <div class="callout">Generic demos lose. Specific demos close. The difference is 45 minutes of prep.</div>
+    `
+  },
+
+  // ===== CONSISTENCY / SC BRAND =====
+  {
+    category: "Consistency",
+    segment: "BOTH",
+    prompt: "Why does consistency matter on the mid-market SC team?",
+    answer: `
+      <p><strong>Because buyers talk, AEs talk, and your team's brand is built by how consistently you execute.</strong></p>
+      <p>When every SC delivers a different version of the NICE pitch, the RingCentral comparison, the compliance answer — the buyer notices. They ask the AE: "Who actually has the right answer?"</p>
+      <p>Consistency doesn't mean robotic. It means:</p>
+      <ul>
+        <li>Same competitive framing across every deal</li>
+        <li>Same high-quality discovery on every first call</li>
+        <li>Same demo structure (Tell → Show → Tell) with room for personal style in delivery</li>
+        <li>Same rigor in follow-up and documentation</li>
+      </ul>
+      <div class="callout">An SC team with consistent execution wins more deals than a team of individually-brilliant SCs who freelance.</div>
+    `
+  },
+  {
+    category: "Consistency",
+    segment: "BOTH",
+    prompt: "What's your one-sentence answer to 'why Nextiva for mid-market?'",
+    answer: `
+      <p><strong>The short version:</strong></p>
+      <p><em>"Nextiva is the only platform that gives a mid-market operation its phone system and its contact center on one platform, with enterprise-grade AI, deployed in 90 days, at a TCO 20–30% lower than buying the pieces separately."</em></p>
+      <p><strong>Four things in that sentence:</strong></p>
+      <ol>
+        <li>UC + CC unified (structural competitive wedge)</li>
+        <li>Enterprise-grade AI (addresses the AI expectation)</li>
+        <li>90 days (speed — mid-market buyers care)</li>
+        <li>20–30% lower TCO (economic buyer language)</li>
+      </ol>
+      <div class="callout">Memorize this. Say it the same way every time. Let your delivery have personality — but the content stays consistent.</div>
+    `
+  },
+  {
+    category: "Consistency",
+    segment: "BOTH",
+    prompt: "What are the 4 repeatable moves that build your SC brand?",
+    answer: `
+      <ol>
+        <li><strong>Discovery before every demo.</strong> No exceptions. Even 15 minutes.</li>
+        <li><strong>Recap email within 24 hours.</strong> Same format every time. Next steps, named owners, dates.</li>
+        <li><strong>Honest answers to hard questions.</strong> "We don't do that natively today; here's how customers handle it" beats "let me check" every time.</li>
+        <li><strong>One insight per call.</strong> Something they didn't know before the meeting — a benchmark, a customer story, a feature they missed.</li>
+      </ol>
+      <div class="callout">Do these four consistently and AEs will fight to get you on their deals.</div>
+    `
+  },
+
+  // ===== OBJECTIONS =====
+  {
+    category: "Objections",
+    segment: "BOTH",
+    prompt: "Objection: 'We're happy with RingCentral, why switch?'",
+    answer: `
+      <p><strong>Don't argue. Probe.</strong></p>
+      <p>"Great — 'happy' is a strong word, so I want to make sure we're not wasting your time. Let me ask a few quick questions:</p>
+      <ul>
+        <li>When's your contract up?</li>
+        <li>If you could change one thing about your current setup, what would it be?</li>
+        <li>When's the last time RC surprised you with a pricing change or outage?</li>
+      </ul>
+      <p>If those answers are all 'nothing,' I'll tell you straight — stay put. But if anything real comes up, let's dig in."</p>
+      <div class="callout">"Happy" is often "not actively angry." Real discovery usually surfaces pain they've normalized.</div>
+    `
+  },
+  {
+    category: "Objections",
+    segment: "BOTH",
+    prompt: "Objection: 'Your pricing seems high compared to [Zoom/GoTo/Dialpad]'",
+    answer: `
+      <p><strong>Reframe from cost to total cost.</strong></p>
+      <p>"Fair — our per-seat number isn't the cheapest on the market. But the number that matters is TCO. Let me walk you through it:</p>
+      <ul>
+        <li>If you're paying for Zoom Phone AND a separate contact center AND separate AI tools — that stack is usually $X per agent all-in. We're in the same range with one vendor.</li>
+        <li>Our implementation is 2–4 weeks for mid-market. The others often take 2–4 months. That's real cost — PS hours, internal time, delayed value.</li>
+        <li>Our support model is included. Some competitors charge for premium support separately.</li>
+      </ul>
+      <p>Let's build out your actual TCO and compare apples to apples."</p>
+      <div class="callout">Never defend list price. Always move to total cost of ownership.</div>
+    `
+  },
+  {
+    category: "Objections",
+    segment: "BOTH",
+    prompt: "Objection: 'Can you really handle our [500/1000/2000] agents?'",
+    answer: `
+      <p><strong>Don't say "yes, easily." Show proof.</strong></p>
+      <ul>
+        <li>"Yes — here's the reference architecture for [seat count]."</li>
+        <li>"Our largest mid-market customer is at [X] seats. Happy to connect you with them."</li>
+        <li>"Our SLA is [X]. Here's the published uptime track record."</li>
+        <li>"If your concern is scale specifically, let's schedule 30 minutes with our solutions architect to walk through your growth model."</li>
+      </ul>
+      <div class="callout">Credibility at mid-market scale comes from specific proof, not vague confidence.</div>
+    `
+  },
+  {
+    category: "Objections",
+    segment: "BOTH",
+    prompt: "Objection: 'We already have a phone system we can't replace right now.'",
+    answer: `
+      <p><strong>Don't force a full replacement. Open the two-phase door.</strong></p>
+      <p>"Totally hear you. Two options worth considering:</p>
+      <ol>
+        <li><strong>Phase 1: Add NCC for contact center only.</strong> Keep your existing phone system. We integrate and coexist. You solve the contact center problem now.</li>
+        <li><strong>Phase 2 (18–24 months out):</strong> When your UC contract comes up, consolidate onto Nextiva. By then, you've already seen the value.</li>
+      </ol>
+      <p>Most of our customers actually start this way. The unified story is the end state, not the starting point."</p>
+      <div class="callout">Rigid "all or nothing" loses mid-market deals. Phase deployments win them.</div>
+    `
+  },
+  {
+    category: "Objections",
+    segment: "BOTH",
+    prompt: "Objection: 'Your AI is new. How do we know it works?'",
+    answer: `
+      <p><strong>Acknowledge the skepticism — it's earned.</strong></p>
+      <p>"Fair — AI is the most overhyped category in tech right now. Most platforms are selling AI that doesn't do much real work. Here's what's different about ours:</p>
+      <ul>
+        <li><strong>It's Google Dialogflow CX underneath.</strong> Not a proprietary model. Proven at scale across thousands of enterprises.</li>
+        <li><strong>It's wired to Thrio workflows.</strong> The AI doesn't just talk — it writes to CRM, transfers calls, triggers workflows.</li>
+        <li><strong>BigQuery under the hood.</strong> Every conversation is structured data you can measure and improve against.</li>
+        <li><strong>Pilot it first.</strong> Before you commit, let's run one bot on one use case and measure containment and CSAT. Real numbers.</li>
+      </ul>
+      <div class="callout">Offering a scoped pilot is more credible than any AI demo.</div>
+    `
+  },
+  {
+    category: "Objections",
+    segment: "UMM",
+    prompt: "UMM Objection: 'We need integrations with [specific CRM/WFM/QM tool].'",
+    answer: `
+      <p><strong>Don't fake it. Don't give up. Find out which.</strong></p>
+      <ol>
+        <li>"Which tools specifically, and how critical is each?" — gets you the priority list</li>
+        <li>"Is it pre-built integration you need, or can it be API-based?" — pre-built is narrower than API'd</li>
+        <li>"If we have to build an integration, are you open to that, or is pre-built required?" — clarifies the real requirement</li>
+      </ol>
+      <p>Then answer honestly:</p>
+      <ul>
+        <li>If we have it native: show it in the demo</li>
+        <li>If we have API support: confirm with engineering and commit to a build timeline</li>
+        <li>If we can't do it: say so early. Better to lose the deal on day 10 than on day 90.</li>
+      </ul>
+    `
+  },
+
+  // ===== SPEED =====
+  {
+    category: "Speed",
+    segment: "BOTH",
+    prompt: "How do you cut demo prep time from 3 hours to 45 minutes?",
+    answer: `
+      <ol>
+        <li><strong>Start with the pre-built vertical tenant.</strong> (If it's not built, invest one time to build it — it pays back on every deal.)</li>
+        <li><strong>Use the reusable click path doc.</strong> Don't redesign the demo. Tune the template.</li>
+        <li><strong>Time-box the customization to 30 minutes.</strong> Brand, queue names, one or two industry touches. Don't spend 2 hours on cosmetics.</li>
+        <li><strong>Recap-style intro slides — 5 max.</strong> Don't build a 20-slide deck for a mid-market demo.</li>
+        <li><strong>Follow-up email template ready in advance.</strong> Write it before the call. Tweak after.</li>
+      </ol>
+      <div class="callout">If prep takes more than an hour for a mid-market demo, something's wrong with your kit — not your effort.</div>
+    `
+  },
+  {
+    category: "Speed",
+    segment: "BOTH",
+    prompt: "What's the '24-hour rule' for mid-market deals?",
+    answer: `
+      <p><strong>Recap emails go out within 24 hours of every meeting. No exceptions.</strong></p>
+      <p>Mid-market deals have shorter cycles than strategic. Velocity is the edge.</p>
+      <p><strong>What's in the recap:</strong></p>
+      <ul>
+        <li>One-sentence summary of what we discussed</li>
+        <li>3 key takeaways — what they told you, what resonated</li>
+        <li>Next step with a named owner and date</li>
+        <li>One insight or link they'll find useful (not pitched at them)</li>
+      </ul>
+      <div class="callout">A 24-hour recap keeps momentum. A 4-day recap lets the competitor get there first.</div>
+    `
+  },
+  {
+    category: "Speed",
+    segment: "LMM",
+    prompt: "LMM-specific: What's the 'one-week rule' for a deal cycle?",
+    answer: `
+      <p>In lower mid-market, a deal can close in 3–6 weeks. The rhythm matters:</p>
+      <ul>
+        <li><strong>Week 1:</strong> Discovery + demo</li>
+        <li><strong>Week 2:</strong> Technical deep dive + references + Q&amp;A</li>
+        <li><strong>Week 3:</strong> Pricing + contract review</li>
+        <li><strong>Week 4–6:</strong> Legal + signature</li>
+      </ul>
+      <p>If any step is slipping by more than a few days, something's wrong. Push for the next step at every interaction. Don't let deals coast.</p>
+    `
+  },
+  {
+    category: "Speed",
+    segment: "UMM",
+    prompt: "UMM-specific: What's a healthy deal velocity at 500+ seats?",
+    answer: `
+      <p>UMM deals run 8–16 weeks typically. Warning signs of a stalling deal:</p>
+      <ul>
+        <li>More than 10 days between buyer-driven activities</li>
+        <li>Repeated reschedules from the buyer side</li>
+        <li>Key stakeholders have gone quiet</li>
+        <li>"We need to bring in IT" at week 10 (they should've been in at week 3)</li>
+      </ul>
+      <p><strong>The move:</strong> Call it out directly. "I notice we've slowed down — is there something I can help unblock, or have priorities shifted?" Don't pretend everything's fine.</p>
+      <div class="callout">Stalled mid-market deals rarely restart. Surface the issue or disqualify.</div>
+    `
+  },
+
+  // ===== POSITIONING =====
+  {
+    category: "Positioning",
+    segment: "BOTH",
+    prompt: "What are the 3 mid-market advantages Nextiva has over EVERY competitor?",
+    answer: `
+      <ol>
+        <li><strong>UC + CC on one platform.</strong> 8x8 is the only real peer here. Everyone else is two vendors.</li>
+        <li><strong>Deployment speed.</strong> 60–90 day go-lives are our default. Five9, Genesys, NICE — all slower.</li>
+        <li><strong>Integrated AI stack.</strong> Dialogflow CX + Thrio + BigQuery is a real agentic AI stack, not a marketing brochure.</li>
+      </ol>
+      <div class="callout">Every mid-market pitch opens with one of these three. Pick the one that matches their pain.</div>
+    `
+  },
+  {
+    category: "Positioning",
+    segment: "BOTH",
+    prompt: "When should you lead with UC+CC unification vs. AI vs. speed?",
+    answer: `
+      <ul>
+        <li><strong>Lead with UC+CC unification when:</strong> the buyer has two vendors today (RingCentral + Five9, Zoom + Talkdesk, etc.) — consolidation pain is real and quantifiable</li>
+        <li><strong>Lead with AI when:</strong> the buyer is pressured by leadership to "do AI" but doesn't know where to start, or when they've had a bad bot experience previously</li>
+        <li><strong>Lead with speed when:</strong> they've been through a painful rip-and-replace before, or their trigger event is time-pressured (M&amp;A, contract end, acquisition integration)</li>
+      </ul>
+      <div class="callout">Discovery tells you which to lead with. Don't default to the same opening every time.</div>
+    `
+  },
+  {
+    category: "Positioning",
+    segment: "BOTH",
+    prompt: "What mid-market value props land WORST if overused?",
+    answer: `
+      <ul>
+        <li><strong>"Best customer support."</strong> Everyone claims this. Buyers ignore it.</li>
+        <li><strong>"Omnichannel."</strong> Table stakes in 2026. Nobody's excited.</li>
+        <li><strong>"Cloud-native."</strong> Nobody is selling on-prem anymore. It's assumed.</li>
+        <li><strong>Generic "AI" without specifics.</strong> Triggers eye-roll. Always pair "AI" with a concrete use case.</li>
+        <li><strong>"Award-winning."</strong> Buyers care about their problem, not your awards.</li>
+      </ul>
+      <div class="callout">If you hear yourself saying these, cut them and replace with specifics tied to the buyer's pain.</div>
+    `
+  },
+
+  // ===== CLOSING & FOLLOW-THROUGH =====
+  {
+    category: "Closing",
+    segment: "BOTH",
+    prompt: "How do you know a mid-market deal is real vs. a pipeline-stuffer?",
+    answer: `
+      <p><strong>Five signals of a real deal:</strong></p>
+      <ol>
+        <li><strong>Named trigger event.</strong> Not "we're always looking." Real triggers: contract end, outage, merger, VP change, compliance failure.</li>
+        <li><strong>Specific timeline.</strong> "By end of Q2" is real. "Sometime this year" is window shopping.</li>
+        <li><strong>Multiple stakeholders engaged.</strong> If only the AE's champion is active, it's thin.</li>
+        <li><strong>They've seen pricing and didn't recoil.</strong> Sticker shock means either no budget or wrong buyer.</li>
+        <li><strong>They're asking implementation questions, not just feature questions.</strong> Buyers don't ask "how do we roll this out" unless they're seriously evaluating.</li>
+      </ol>
+      <div class="callout">Deals missing 3+ of these are usually not real. Disqualify and focus on the ones that are.</div>
+    `
+  },
+  {
+    category: "Closing",
+    segment: "BOTH",
+    prompt: "What's the SC's role in moving a deal from demo to close?",
+    answer: `
+      <p><strong>The AE owns the commercial motion. You own the technical confidence.</strong></p>
+      <p>Your job post-demo:</p>
+      <ul>
+        <li>Follow up on every technical question within 24 hours</li>
+        <li>Set up technical deep dives with the right Nextiva resources (architects, PMs) when needed</li>
+        <li>Provide proof artifacts — reference architectures, security docs, integration specs</li>
+        <li>Match them with a reference customer when appropriate</li>
+        <li>Anticipate objections before the buyer raises them and address proactively</li>
+      </ul>
+      <div class="callout">If the AE has to chase you for technical follow-through, you're losing the deal. Own your half of the process.</div>
+    `
+  },
+  {
+    category: "Closing",
+    segment: "BOTH",
+    prompt: "What do you do when you lose a mid-market deal?",
+    answer: `
+      <p><strong>Three moves — every loss, every time:</strong></p>
+      <ol>
+        <li><strong>Get a real post-mortem with the buyer.</strong> Not "why didn't we win" (they won't tell you). Ask: "What would've had to be different for us to win?" That they'll answer.</li>
+        <li><strong>Write the retrospective within 48 hours.</strong> Document the incumbent, the competitor, the stated reason, the real reason, and what you'd do differently.</li>
+        <li><strong>Share it with the team.</strong> Your team's biggest advantage is learning from each other's losses. Losing privately wastes the lesson.</li>
+      </ol>
+      <div class="callout">The SCs who consistently improve are the ones who study their losses as seriously as their wins.</div>
+    `
+  },
+
+  // ===== HABITS =====
+  {
+    category: "Habits",
+    segment: "BOTH",
+    prompt: "What should a mid-market SC do in the first 30 minutes of the workday?",
+    answer: `
+      <ol>
+        <li><strong>Scan deal pipeline.</strong> 5 min. What's moving? What's stuck? Who needs follow-up today?</li>
+        <li><strong>Clear technical follow-ups.</strong> 15 min. Anything owed to a buyer from yesterday gets sent.</li>
+        <li><strong>Review today's calls.</strong> 10 min. For each call: what's the goal? What's the one insight you're bringing? What's the next step you want to set?</li>
+      </ol>
+      <div class="callout">30 minutes of discipline = you're ahead of 70% of SCs every day.</div>
+    `
+  },
+  {
+    category: "Habits",
+    segment: "BOTH",
+    prompt: "What should a mid-market SC read every week to stay sharp?",
+    answer: `
+      <ul>
+        <li><strong>Nextiva product release notes.</strong> Know what shipped this week before the buyer does.</li>
+        <li><strong>No Jitter + CX Today.</strong> 30 minutes, twice a week. Competitive news.</li>
+        <li><strong>Gartner Peer Insights for our top 3 competitors.</strong> What are real customers saying?</li>
+        <li><strong>LinkedIn posts from 5–10 Contact Center Ops leaders.</strong> Know what your buyers are talking about.</li>
+        <li><strong>One deal retrospective from a teammate.</strong> If your team shares them.</li>
+      </ul>
+      <div class="callout">20 minutes a day. Compound interest on credibility.</div>
+    `
+  },
+  {
+    category: "Habits",
+    segment: "BOTH",
+    prompt: "What's the weekly habit that separates top mid-market SCs?",
+    answer: `
+      <p><strong>A Friday 30-minute retro on yourself.</strong></p>
+      <p>Ask yourself:</p>
+      <ul>
+        <li>What worked in my demos this week? What didn't?</li>
+        <li>Which objections surprised me? What's a better answer next time?</li>
+        <li>Which deals are moving? Which are stuck? Why?</li>
+        <li>What's one specific thing I'm going to do differently next week?</li>
+      </ul>
+      <p>Write it down. 10 minutes. Every Friday.</p>
+      <div class="callout">Talent compounds when it's examined. Top SCs have a private retrospective habit. Average SCs don't.</div>
+    `
+  },
+
+  // ===== MINDSET =====
+  {
+    category: "Mindset",
+    segment: "BOTH",
+    prompt: "What's the mid-market SC mindset that wins?",
+    answer: `
+      <p><strong>"Be the most prepared person on every call."</strong></p>
+      <p>Not the smartest. Not the most experienced. The most prepared.</p>
+      <ul>
+        <li>You did 15 minutes of discovery before the demo</li>
+        <li>You customized the tenant to their brand</li>
+        <li>You know their incumbent's strengths and weaknesses</li>
+        <li>You have two reference customer stories ready</li>
+        <li>You have your top 3 objection answers rehearsed</li>
+      </ul>
+      <div class="callout">Preparation is the only thing fully in your control. Make it your advantage.</div>
+    `
+  },
+  {
+    category: "Mindset",
+    segment: "BOTH",
+    prompt: "What's the mindset trap that kills mid-market SCs?",
+    answer: `
+      <p><strong>"I've done this demo 100 times."</strong></p>
+      <p>The moment you're on autopilot, the buyer feels it. The demo becomes a performance instead of a conversation. Your close rate drops.</p>
+      <p>Every demo should feel like the first time — because for the buyer, it is.</p>
+      <p><strong>How to stay fresh:</strong></p>
+      <ul>
+        <li>Do real discovery every single time, even if you could guess the answers</li>
+        <li>Customize one new thing in the demo each time</li>
+        <li>Ask one new question of the buyer during the call</li>
+        <li>Try one new phrasing of the value prop</li>
+      </ul>
+      <div class="callout">Stay curious. Buyers can tell the difference between a curious SC and a scripted one.</div>
+    `
+  },
+  {
+    category: "Mindset",
+    segment: "BOTH",
+    prompt: "What are mid-market buyers actually buying?",
+    answer: `
+      <p><strong>Confidence that this won't blow up in their face.</strong></p>
+      <p>Mid-market buyers usually aren't the CEO. They're a director or VP who's going to catch heat personally if the implementation goes sideways. Their biggest fear isn't "did we pick the best platform." It's "did I make a decision I'll regret."</p>
+      <p>Your job is to de-risk the decision for them:</p>
+      <ul>
+        <li>Clear implementation timeline with named milestones</li>
+        <li>Reference customers they can call</li>
+        <li>Honest answers about gaps and trade-offs</li>
+        <li>Named support structure post-sale</li>
+        <li>A credible champion (you) who'll stay involved</li>
+      </ul>
+      <div class="callout">Buyers don't buy the best product. They buy the least-risky decision. Be the least-risky option.</div>
+    `
+  }
+];
+
+// ====== APP STATE ======
+let currentCategory = 'All';
+let filteredCards = [...CARDS];
+let currentIndex = 0;
+let isFlipped = false;
+
+const card = document.getElementById('card');
+const promptText = document.getElementById('promptText');
+const answerText = document.getElementById('answerText');
+const frontCat = document.getElementById('frontCat');
+const backCat = document.getElementById('backCat');
+const frontSeg = document.getElementById('frontSeg');
+const backSeg = document.getElementById('backSeg');
+const frontNum = document.getElementById('frontNum');
+const backNum = document.getElementById('backNum');
+const progressText = document.getElementById('progressText');
+const progressFill = document.getElementById('progressFill');
+const categoryRow = document.getElementById('categoryRow');
+
+function getCategories() {
+  const cats = ['All', ...new Set(CARDS.map(c => c.category))];
+  return cats.map(cat => ({
+    name: cat,
+    count: cat === 'All' ? CARDS.length : CARDS.filter(c => c.category === cat).length
+  }));
+}
+
+function renderCategories() {
+  const cats = getCategories();
+  categoryRow.innerHTML = cats.map(c =>
+    `<button class="chip ${c.name === currentCategory ? 'active' : ''}" data-cat="${c.name}">
+      ${c.name}<span class="count">${c.count}</span>
+    </button>`
+  ).join('');
+  categoryRow.querySelectorAll('.chip').forEach(btn => {
+    btn.addEventListener('click', () => selectCategory(btn.dataset.cat));
+  });
+}
+
+function selectCategory(cat) {
+  currentCategory = cat;
+  filteredCards = cat === 'All' ? [...CARDS] : CARDS.filter(c => c.category === cat);
+  currentIndex = 0;
+  isFlipped = false;
+  card.classList.remove('flipped');
+  renderCategories();
+  renderCard();
+}
+
+function renderCard() {
+  if (filteredCards.length === 0) return;
+  const c = filteredCards[currentIndex];
+  promptText.textContent = c.prompt;
+  answerText.innerHTML = c.answer;
+  frontCat.textContent = c.category;
+  backCat.textContent = c.category;
+  frontNum.textContent = `${currentIndex + 1} / ${filteredCards.length}`;
+  backNum.textContent = `${currentIndex + 1} / ${filteredCards.length}`;
+
+  // Segment tags
+  if (c.segment && c.segment !== 'BOTH') {
+    frontSeg.textContent = c.segment;
+    backSeg.textContent = c.segment;
+    frontSeg.style.display = 'inline-block';
+    backSeg.style.display = 'inline-block';
+  } else {
+    frontSeg.style.display = 'none';
+    backSeg.style.display = 'none';
+  }
+
+  progressText.textContent = `${currentIndex + 1} / ${filteredCards.length}`;
+  progressFill.style.width = `${((currentIndex + 1) / filteredCards.length) * 100}%`;
+  document.getElementById('prevBtn').disabled = currentIndex === 0;
+  document.getElementById('nextBtn').disabled = currentIndex === filteredCards.length - 1;
+  const backFace = document.querySelector('.face.back');
+  if (backFace) backFace.scrollTop = 0;
+}
+
+function flip() {
+  isFlipped = !isFlipped;
+  card.classList.toggle('flipped');
+}
+
+function next() {
+  if (currentIndex < filteredCards.length - 1) {
+    currentIndex++;
+    isFlipped = false;
+    card.classList.remove('flipped');
+    setTimeout(renderCard, 100);
+  }
+}
+
+function prev() {
+  if (currentIndex > 0) {
+    currentIndex--;
+    isFlipped = false;
+    card.classList.remove('flipped');
+    setTimeout(renderCard, 100);
+  }
+}
+
+function shuffle() {
+  for (let i = filteredCards.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [filteredCards[i], filteredCards[j]] = [filteredCards[j], filteredCards[i]];
+  }
+  currentIndex = 0;
+  isFlipped = false;
+  card.classList.remove('flipped');
+  renderCard();
+}
+
+card.addEventListener('click', flip);
+document.getElementById('flipBtn').addEventListener('click', (e) => { e.stopPropagation(); flip(); });
+document.getElementById('nextBtn').addEventListener('click', (e) => { e.stopPropagation(); next(); });
+document.getElementById('prevBtn').addEventListener('click', (e) => { e.stopPropagation(); prev(); });
+document.getElementById('shuffleBtn').addEventListener('click', shuffle);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight') next();
+  else if (e.key === 'ArrowLeft') prev();
+  else if (e.key === ' ' || e.key === 'Enter') { e.preventDefault(); flip(); }
+});
+
+let touchStartX = 0;
+let touchStartY = 0;
+card.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+card.addEventListener('touchend', (e) => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy)) {
+    if (dx < 0) next();
+    else prev();
+  }
+}, { passive: true });
+
+renderCategories();
+renderCard();
+</script>
+</body>
+</html>
