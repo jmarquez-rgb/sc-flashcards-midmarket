@@ -1,1 +1,0 @@
-# sc-flashcards-midmarket
